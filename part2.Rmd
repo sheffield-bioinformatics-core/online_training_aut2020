@@ -1,0 +1,686 @@
+---
+title: "R Crash Course"
+author: "Mark Dunning"
+date: '`r format(Sys.time(), "Last modified: %d %b %Y")`'
+output: 
+  html_notebook: 
+    toc: yes
+    toc_float: yes
+    css: stylesheets/styles.css
+editor_options: 
+  chunk_output_type: inline
+---
+
+# Introduction to R - Part II
+
+<img src="images/logo-sm.png" style="position:absolute;top:40px;right:10px;" width="200" />
+
+## Recap
+
+We should have loaded the `readr` and `dplyr` libraries and imported an example dataset into R.
+
+```{r message=FALSE}
+library(readr)
+library(dplyr)
+gapminder <- read_csv("raw_data/gapminder.csv")
+```
+
+
+
+### "Piping"
+
+As have have just seen, we will often need to perform an analysis, or clean a dataset, using several `dplyr` functions in sequence. e.g. filtering, mutating, then selecting columns of interest (possibly followed by plotting - see shortly).
+
+As a small example; if we wanted to filter our results to just Europe the `continent` column becomes redundant so we might as well remove it.
+
+The following is perfectly valid R code, but invites the user to make mistakes and copy-and-paste erros when writing it. We also have to create multiple copies of the same data frame.
+
+```{r}
+tmp <- filter(gapminder, continent == "Europe")
+tmp2 <- select(tmp, -continent)
+tmp2
+```
+
+(Those familiar with Unix may recall that commands can be joined with a pipe; `|`)
+
+In R, `dplyr` commands to be linked together and form a workflow. The symbol `%>%` is pronounced **then**. With a `%>% ` the input to a function is assumed to be the output of the previous line. All the `dplyr` functions that we have seen so far take a data frame as an input and return an altered data frame as an output, so are amenable to this type of programming.
+
+The example we gave of filtering just the European countries and removing the `continent` column becomes:-
+
+
+```{r}
+filter(gapminder, continent=="Europe") %>% 
+  select(-continent)
+```
+
+We can join as many `dplyr` functions as we require for the analysis.
+
+******
+******
+******
+
+#### Exercise
+
+<div class="exercise">
+- Re-write your solution to the previous exercise, but using the ` %>% ` symbol
+
+</div>
+
+```{r}
+
+
+```
+
+
+******
+******
+******
+
+# Plotting
+
+The R language has extensive graphical capabilities.
+
+Graphics in R may be created by many different methods including base graphics and more advanced plotting packages such as lattice.
+
+The `ggplot2` package was created by Hadley Wickham and provides a intuitive plotting system to rapidly generate publication quality graphics.
+
+`ggplot2` builds on the concept of the “Grammar of Graphics” (Wilkinson 2005, Bertin 1983) which describes a consistent syntax for the construction of a wide range of complex graphics by a concise description of their components.
+
+## Why use ggplot2?
+
+The structured syntax and high level of abstraction used by ggplot2 should allow for the user to concentrate on the visualisations instead of creating the underlying code.
+
+On top of this central philosophy ggplot2 has:
+
+- Increased flexibility over many plotting systems.
+- An advanced theme system for professional/publication level graphics.
+- Large developer base – Many libraries extending its flexibility.
+- Large user base – Great documentation and active mailing list.
+
+<div class="information">
+
+It is always useful to think about the message you want to convey and the appropriate plot before writing any R code. Resources like [data-to-viz.com](https://www.data-to-viz.com/) should help.
+</div>
+
+With some practice, `ggplot2` makes it easier to go from the figure you are imagining in our head (or on paper) to a publication-ready image in R.
+
+<div class="information">
+As with `dplyr`, we won't have time to cover all details of `ggplot2`. This is however a useful [cheatsheet](https://www.rstudio.com/wp-content/uploads/2015/03/ggplot2-cheatsheet.pdf) that can be printed as a reference. The cheatsheet is also available through the RStudio Help menu.
+</div>
+
+## Basic plot types
+
+A plot in `ggplot2` is created with the following type of command
+
+```
+ggplot(data = <DATA>, mapping = aes(<MAPPINGS>)) +  <GEOM_FUNCTION>()
+```
+
+So we need to specify
+
+- The data to be used in graph
+- Mappings of data to the graph (*aesthetic* mapping)
+- What type of graph we want to use (The *geom* to use).
+
+Lets say that we want to explore the relationship between GDP and Life Expectancy. We might start with the hypothesis that richer countries have higher life expectancy. A sensible choice of plot would be a *scatter plot* with gdp on the x-axis and life expectancy on the y-axis.
+
+The first stage is to specify our dataset
+
+```{r}
+library(ggplot2)
+ggplot(data = gapminder)
+```
+
+For the aesthetics, as a bare minimum we will map the `gdpPercap` and `lifeExp` to the x- and y-axis of the plot. Some progress is made; we at least get axes
+
+```{r}
+ggplot(data = gapminder,aes(x=gdpPercap, y=lifeExp))
+```
+
+That created the axes, but we still need to define how to display our points on the plot. As we have continuous data for both the x- and y-axis, `geom_point` is a good choice.
+
+```{r}
+ggplot(data = gapminder,aes(x=gdpPercap, y=lifeExp)) + geom_point()
+```
+
+
+
+
+The *geom* we use will depend on what kind of data we have (continuous, categorical etc)
+
+- `geom_point()` - Scatter plots
+- `geom_line()` - Line plots
+- `geom_smooth()` - Fitted line plots
+- `geom_bar()` - Bar plots
+- `geom_boxplot()` - Boxplots
+- `geom_jitter()` - Jitter to plots
+- `geom_histogram()` - Histogram plots
+- `geom_density()` - Density plots
+- `geom_text()` - Text to plots
+- `geom_errorbar()` - Errorbars to plots
+- `geom_violin()` - Violin plots
+- `geom_tile()` - for "heatmap"-like plots
+
+
+Boxplots are commonly used to visualise the distributions of continuous data. We have to use a categorical variable on the x-axis such as `continent` or `country` (not advisable in this case as there are too many different values). 
+
+The order of the boxes along the x-axis is dictated by the order of categories in the factor; with the default for names being alphabetical order.
+
+```{r}
+ggplot(gapminder, aes(x = continent, y=gdpPercap)) + geom_boxplot()
+```
+
+
+```{r}
+ggplot(gapminder, aes(x = gdpPercap)) + geom_histogram()
+```
+
+Producing a barplot of counts only requires an `x` variable. The counts will be generated by R. 
+
+```{r}
+ggplot(gapminder, aes(x=continent)) + geom_bar()
+```
+
+The height of the bars can also be mapped directly to numeric variables in the data frame if the `geom_col` function is used instead. 
+
+In the below plot the axis labels will be messy and difficult to read. This is something that can be customised with some of the `ggplot2` options we will explore later.
+
+```{r}
+gapminder2002 <- filter(gapminder, year==2002,continent=="Americas")
+ggplot(gapminder2002, aes(x=country,y=gdpPercap)) + geom_col()
+```
+
+Where appropriate, we can add multiple layers of `geom`s to the plot. For instance, a criticism of the boxplot is that it does not show all the data. We can rectify this by overlaying the individual points.
+
+```{r}
+ggplot(gapminder, aes(x = continent, y=gdpPercap)) + geom_boxplot() + geom_point()
+```
+
+```{r}
+ggplot(gapminder, aes(x = continent, y=gdpPercap)) + geom_boxplot() + geom_jitter(width=0.1)
+```
+
+
+******
+******
+******
+
+### Exercises
+
+<div class="exercise">
+- The violin plot is a popular alternative to the boxplot. Create a violin plot with `geom_violin` to visualise the differences in GDP between different continents.
+- Create a subset of the `gapminder` data frame containing just the rows for your country of birth
+- Has there been an increase in life expectancy over time?
+    + visualise the trend using a scatter plot (`geom_point`), line graph (`geom_line`) or smoothed line (`geom_smooth`).
+- What happens when you modify the `geom_boxplot` example to compare the gdp distributions for different years?
+    + Look at the message `ggplot2` prints above the plot and try to modify the code to give a separate boxplot for each year
+</div>
+
+******
+******
+******
+
+
+```{r}
+
+```
+
+
+
+
+
+As we have seen already, `ggplot` offers an interface to create many popular plot types. It is up to the user to decide what the best way to visualise the data.
+
+
+
+
+## Customising the plot appearance
+
+Our plots are a bit dreary at the moment, but one way to add colour is to add a `col` argument to the `geom_point` function. The value can be any of the pre-defined colour names in R. These are displayed in this [handy online reference](http://www.stat.columbia.edu/~tzheng/files/Rcolor.pdf). *R*ed, *G*reen, *B*lue of *Hex* values can also be given.
+
+```{r}
+ggplot(gapminder, aes(x = gdpPercap, y=lifeExp)) + geom_point(col="red")
+```
+
+However, a powerful feature of `ggplot2` is that colours are treated as aesthetics of the plot. In other words we can use a column in our dataset.
+
+Let's say that we want points on our plot to be coloured according to continent. We add an extra argument to the definition of aesthetics to define the mapping. `ggplot2` will even decide on colours and create a legend for us.
+
+```{r}
+ggplot(gapminder, aes(x = gdpPercap, y=lifeExp,col=continent)) + geom_point()
+```
+
+It will even choose a continuous or discrete colour scale based on the data type. We have already seen that `ggplot2` is treat our `year` column as numerical data; which is probably not very useful for visualisation.
+
+```{r}
+ggplot(gapminder, aes(x = gdpPercap, y=lifeExp,col=year)) + geom_point()
+```
+
+We can force `ggplot2` to treat `year` as categorical data by using `as.factor` when creating the aesthetics.
+
+```{r}
+ggplot(gapminder, aes(x = gdpPercap, y=lifeExp,col=as.factor(year))) + geom_point()
+```
+
+When used in the construction of a boxplot, the `col` argument will change the colour of the lines. To change the colour of the boxes we have to use `fill`.
+
+```{r}
+ggplot(gapminder, aes(x = continent, y=gdpPercap,fill=continent)) + geom_boxplot()
+```
+
+
+The shape and size of points can also be mapped from the data. However, it is easy to get carried away.
+
+```{r}
+ggplot(gapminder, aes(x = gdpPercap, y=lifeExp,shape=continent,size=pop)) + geom_point()
+```
+
+Scales and their legends have so far been handled using `ggplot2` defaults. `ggplot2` offers functionality to have finer control over scales and legends using the scale methods.
+
+Scale methods are divided into functions by combinations of
+
+- the aesthetics they control.
+
+- the type of data mapped to scale.
+
+`scale_`*aesthetic*_*type*
+
+Try typing in `scale_` then tab to autocomplete. This will provide some examples of the scale functions available in `ggplot2`.
+
+Although different scale functions accept some variety in their arguments, common arguments to scale functions include -
+
+- name - The axis or legend title
+
+- limits - Minimum and maximum of the scale
+
+- breaks - Label/tick positions along an axis
+
+- labels - Label names at each break
+
+- values - the set of aesthetic values to map data values
+
+We can choose specific colour palettes, such as those provided by the `RColorBrewer` package. This package provides palettes for different types of scale (sequential, diverging, qualitative).
+
+
+```{r}
+library(RColorBrewer)
+display.brewer.all(colorblindFriendly = TRUE)
+```
+
+<div class="warning">
+**When creating a plot, always check that the colour scheme is appropriate for people with various forms of colour-blindness**
+</div>
+
+When experimenting with colour palettes and labels, it is useful to save the plot as an object
+```{r}
+p <- ggplot(gapminder, aes(x = gdpPercap, y=lifeExp,col=continent)) + geom_point()
+```
+
+
+```{r}
+# We can also change the text displayed above the legend with the name parameter.
+p + scale_color_brewer(name="Continent", palette = "Set2")
+```
+
+Or we can even specify our own colours; such as The University of Sheffield branding colours
+
+```{r}
+my_pal <- c(rgb(0,159,218,maxColorValue = 255),
+            rgb(31,20,93,maxColorValue = 255),
+            rgb(249,227,0,maxColorValue = 255),
+            rgb(0,155,72,maxColorValue = 255),
+            rgb(190,214,0,maxColorValue = 255))
+p + scale_color_manual(values=my_pal)
+
+```
+
+
+
+Various labels can be modified using the `labs` function.
+
+```{r}
+p + labs(x="Wealth",y="Life Expectancy",title="Relationship between Wealth and Life Expectancy")
+```
+
+We can also modify the x- and y- limits of the plot so that any outliers are not shown. `ggplot2` will give a warning that some points are excluded.
+
+```{r}
+p + xlim(0,60000)
+```
+
+Saving is supported by the `ggsave` function. A variety of file formats are supported (`.png`, `.pdf`, `.tiff`, etc) and the format used is determined from the extension given in the `file` argument. The height, width and resolution can also be configured. See the help on `ggsave` (`?ggsave`) for more information.
+
+```{r}
+ggsave(p, file="my_ggplot.png")
+```
+
+Most aspects of the plot can be modified from the background colour to the grid sizes and font. Several pre-defined "themes" exist and we can modify the appearance of the whole plot using a `theme_..` function.
+
+```{r}
+p + theme_bw()
+```
+
+More themes are supported by the `ggthemes` package. You can make your plots look like the Economist, Wall Street Journal or Excel (**but please don't do this!**)
+
+******
+******
+******
+
+
+## Facets
+
+One very useful feature of `ggplot2` is faceting. This allows you to produce plots subset by variables in your data. In the scatter plot above, it was quite difficult to see if the relationship between gdp and life expectancy was the same for each continent. To overcome this, we would like a see a separate plot for each continent.
+
+To facet our data into multiple plots we can use the `facet_wrap` (1 variable) or `facet_grid` (2 variables) functions and specify the variable(s) we split by. 
+
+```{r}
+p + facet_wrap(~continent)
+
+```
+
+The `facet_grid` function will create a grid-like plot with one variable on the x-axis and another on the y-axis.
+
+```{r fig.width=12}
+p + facet_grid(continent~year)
+```
+
+
+The previous plot was a bit messy as it contained all combinations of year and continent. Let's suppose we want our analysis to be a bit more focused and disregard countries in Oceania (as there are only 2 in our dataset) and maybe years between 1997 and 2002. 
+
+
+We should know how to restrict the rows from the `gapminder` dataset using the `filter` function. Instead of filtering the data, creating a new data frame and constructing the data frame from these new data we can use the` %>%` operator to create the data frame on the fly and pass directly to `ggplot`. Thus we don't have to save a new data frame or alter the original data.
+
+
+```{r fig.width=12}
+filter(gapminder, continent!="Oceania", year %in% c(1997,2002,2007)) %>% 
+  ggplot(aes(x = gdpPercap, y=lifeExp,col=continent)) + geom_point() + facet_grid(continent~year)
+```
+
+
+# Summarising and grouping with dplyr
+
+
+
+The `summarise` function can take any R function that takes a vector of values (i.e. a column from a data frame) and returns a single value. Some of the more useful functions include:
+
+- `min` minimum value
+- `max` maximum value
+- `sum` sum of values
+- `mean` mean value
+- `sd` standard deviation
+- `median` median value
+- `IQR` the interquartile range
+- `n_distinct` the number of distinct values
+- `n` the number of observations (Note: this is a special function that doesn’t take a vector argument, i.e. column)
+
+
+```{r}
+library(dplyr)
+summarise(gapminder, min(lifeExp), max(gdpPercap), mean(pop))
+```
+
+It is also possible to summarise using a function that takes more than one value, i.e. from multiple columns. For example, we could compute the correlation between year and life expectancy. Here we also assign names to the table that is produced.
+
+```{r}
+gapminder %>% 
+summarise(MinLifeExpectancy = min(lifeExp), 
+          MaximumGDP = max(gdpPercap), 
+          AveragePop = mean(pop), 
+          Correlation = cor(year, lifeExp))
+```
+
+However, it is not particularly useful to calculate such values from the entire table as we have different continents and years. The `group_by` function allows us to split the table into different categories, and compute summary statistics for each year (for example).
+
+```{r}
+gapminder %>% 
+    group_by(year) %>% 
+    summarise(MinLifeExpectancy = min(lifeExp), 
+              MaximumGDP = max(gdpPercap), 
+              AveragePop = mean(pop))
+```
+
+If we want to summarise several columns we can use the convenient `summarise_all` function. However, this will return `NA` values for columns that do not contain numeric values.
+
+```{r warning=FALSE}
+gapminder %>% 
+  group_by(continent,year) %>% 
+  summarise_all(mean)
+```
+
+
+
+The nice thing about `summarise` is that it can followed up by any of the other `dplyr` verbs that we have met so far (`select`, `filter`, `arrange`..etc). As the `country` column of the previous output containing missing values we can exclude it from further processing.
+
+```{r warning=FALSE}
+gapminder %>% 
+  group_by(continent,year) %>% 
+  summarise_all(mean) %>% 
+  select(-country)
+```
+
+Returning to the correlation between life expectancy and year, we can summarise as follows:-
+
+```{r}
+gapminder %>%     
+    group_by(country) %>% 
+    summarise(Correlation = cor(year , lifeExp))
+```
+
+We can then arrange the table by the correlation to see which countries have the lowest correlation
+
+```{r}
+gapminder %>%      
+    group_by(country) %>% 
+    summarise(Correlation = cor(year , lifeExp)) %>% 
+    arrange(Correlation)
+```
+
+We can filter the results to find observations of interest
+
+```{r}
+gapminder %>%      
+    group_by(country) %>% 
+    summarise(Correlation = cor(year , lifeExp)) %>% 
+    filter(Correlation < 0)
+```
+
+The countries we identify could then be used as the basis for a plot.
+
+```{r}
+library(ggplot2)
+filter(gapminder, country %in% c("Rwanda","Zambia","Zimbabwe")) %>% 
+  ggplot(aes(x=year, y=lifeExp,col=country)) + geom_line()
+``` 
+
+******
+******
+******
+### Exercise 
+<div class="exercise">
+- Summarise the `gapminder` data in an appropriate manner to produce a plot to show the change in average `gdpPercap` for each continent over time.
+- see below for a suggestion
+    + HINT: you will need to use the `geom_col` function to create the bar plot
+</div>
+
+******
+******
+******
+
+![](https://raw.githubusercontent.com/sheffield-bioinformatics-core/r-crash-course/master/images/summarise_example.png)
+
+
+```{r}
+
+
+
+```
+
+
+# Joining
+
+In many real life situations, data are spread across multiple tables or spreadsheets. Usually this occurs because different types of information about a subject, e.g. a patient, are collected from different sources. It may be desirable for some analyses to combine data from two or more tables into a single data frame based on a common column, for example, an attribute that uniquely identifies the subject.
+
+`dplyr` provides a set of join functions for combining two data frames based on matches within specified columns. For those familiar with such SQL, these operations are very similar to carrying out join operations between tables in a relational database.
+
+As a toy example, lets consider two data frames that some results of testing whether genes A, B and C are significant in our study (gene expression, mutations, etc.)
+
+```{r}
+gene_results <- data.frame(Name=LETTERS[1:3], pvalue = c(0.001, 0.1,0.01))
+gene_results
+```
+
+We might also have a data frame containing more data about the genes; such as which chromosome they are located on. As part of our data interpretation we might need to know where in the genome the genes are located.
+
+```{r}
+gene_anno <- data.frame(Name = c("A","B","D"), chromosome=c(1,1,3))
+gene_anno
+```
+
+There are various ways in which we can join these two tables together. We will first consider the case of a "left join".
+
+![](https://raw.githubusercontent.com/sheffield-bioinformatics-core/r-crash-course/master/images/left-join.gif)
+
+*Animated gif by Garrick Aden-Buie*
+
+`left_join` returns all rows from the first data frame regardless of whether there is a match in the second data frame. Rows with no match are included in the resulting data frame but have `NA` values in the additional columns coming from the second data frame.
+
+Animations to illustrate other types of join are available at [https://github.com/gadenbuie/tidy-animated-verbs](https://github.com/gadenbuie/tidy-animated-verbs)
+
+```{r}
+left_join(gene_results, gene_anno)
+```
+`right_join` is similar but returns all rows from the second data frame that have a match with rows in the first data frame based on the specified column.
+
+```{r}
+right_join(gene_results, gene_anno)
+```
+
+`inner_join` only returns those rows where matches could be made
+
+```{r}
+inner_join(gene_results, gene_anno)
+```
+
+
+******
+******
+******
+
+# Wrap-up
+
+We have introduced a few of the essential packages from the R tidyverse that can help with data manipulation and visualisation.
+
+![](https://aberdeenstudygroup.github.io/studyGroup/lessons/SG-T2-JointWorkshop/tidyverse.png)
+Hopefully you will feel more confident about importing your data into R and producing some useful visualisations. You will probably have questions regarding the analysis of your own data. Some good starting points to get help are listed below.
+
+<div class="information">
+
+- [tidyverse homepage](https://www.tidyverse.org/)
+- [R graph gallery](https://www.r-graph-gallery.com/)
+
+</div>
+
+To finish the workshop we will look at the analysis of some relevant data that we can import into R and analyse with the tools from the workshop.
+
+## Introducing the COVID-19 data 
+
+Data for global COVID-19 cases are available online from CSSE at Johns Hopkins University on their github repository.
+
+<div class="information">
+[github](www.github.com) is an excellent way of making your code and analysis available for others to reuse and share. Private repositories with restricted access are also available. Here is a useful beginners guide.
+
+-[Friendly github intro](https://kirstiejane.github.io/friendly-github-intro/)
+
+</div>
+
+R is capable of downloading files to our own machine so we can analyse them. We need to know the URL (for the COVID data we can find this from github, or use the address below) and can specify what to call the file when it is downloaded.
+
+```{r}
+download.file("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv",destfile = "time_series_covid19_confirmed_global.csv")
+
+```
+
+We can use the `read_csv` function as before to import the data and take a look. We can see the basic structure of the data is one row for each country / region and columns for cases on each day. 
+
+```{r}
+covid <- read_csv("time_series_covid19_confirmed_global.csv")
+covid
+```
+
+We can potentially join these data to `gapminder`, but it would be beneficial to have one column name in common between both files. We can `rename` the `Country/Region` column of our new data frame to match `gapminder`.
+
+```{r}
+covid <- read_csv("time_series_covid19_confirmed_global.csv") %>% 
+  rename(country = `Country/Region`) 
+covid
+```
+
+Much of the analysis of this dataset has looked at trends over time (e.g. increasing /decreasing case numbers, comparing trajectories). As we know by now, the `ggplot2` package allows us to map columns (variables) in our dataset to aspects of the plot. 
+
+In other words, we would expect to create plots by writing code such as:-
+
+
+```
+ggplot(covid, aes(x = Date, y =...)) + ...
+```
+
+Unfortunately such plots are not possible with the data in it's current format. Counts for each date are containing in a different column. What we require is a column to indicate the date, and the corresponding count in the next column. Such data arrangements are known as *long data*; whereas we have *wide* data. Fortunately we can convert between the two using the `tidyr` package (also part of tidyverse).
+
+```{r eval=FALSE}
+## install tidyr if you don't already have it
+install.packages("tidyr")
+```
+
+
+<div class="information">
+
+For more information on *tidy data*, and how to convert between long and wide data, see
+
+https://r4ds.had.co.nz/tidy-data.html
+
+</div>
+
+```{r}
+
+covid <- read_csv("time_series_covid19_confirmed_global.csv") %>% 
+  rename(country = `Country/Region`) %>% 
+  tidyr::pivot_longer(5:last_col(),names_to="Date", values_to="Cases")
+covid
+```
+
+Another point to note is that the dates are not in an internationally recognised format, which could cause a problem for some visualisations that rely on date order. We can fix by explicitly converting to YYYY-MM-DD format.
+
+```{r}
+covid <- read_csv("time_series_covid19_confirmed_global.csv") %>% 
+  rename(country = `Country/Region`) %>% 
+  tidyr::pivot_longer(5:last_col(),names_to="Date", values_to="Cases") %>% 
+    mutate(Date=as.Date(Date,"%m/%d/%y"))
+covid
+```
+
+The number of new cases per-day can also be added to the table by using the `lag` function from `dplyr`.
+
+```{r}
+covid <- read_csv("time_series_covid19_confirmed_global.csv") %>% 
+  rename(country = `Country/Region`) %>% 
+  tidyr::pivot_longer(5:last_col(),names_to="Date", values_to="Cases") %>% 
+  mutate(Date=as.Date(Date,"%m/%d/%y")) %>% 
+  mutate(DailyCases = Cases - dplyr::lag(Cases,default = 0))  
+covid
+```
+
+
+### Exercise 
+<div class="exercise">
+What plots and summaries can you make from these data?
+
+- Plotting the number of cases over time for certain countries
+- For each continent, what countries have the highest number of cases?
+- Can you normalise for population size (using 2007 population figures)?
+
+</div>
+
+```{r}
+
+```
+

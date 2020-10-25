@@ -1,0 +1,625 @@
+---
+title: "R Crash Course"
+author: "Mark Dunning"
+date: '`r format(Sys.time(), "Last modified: %d %b %Y")`'
+output: 
+  html_notebook: 
+    toc: yes
+    toc_float: yes
+    css: stylesheets/styles.css
+editor_options: 
+  chunk_output_type: inline
+---
+<img src="images/logo-sm.png" style="position:absolute;top:40px;right:10px;" width="200" />
+
+
+# Acknowledgement
+
+These materials are adapted from a course developed at Cancer Research Uk Cambridge Institute by Mark Dunning, Matthew Eldridge and Thomas Carroll.
+
+# Aims and objectives
+
+<div class="warning">
+Although R is well-regarded as a tool for performing statistical analysis, this workshop will not explicitly teach stats. Instead we give introduce the tools that we allow you to manipulate and interrogate your data into a form with which you can execute statistical tests.
+
+</div>
+
+# Using these notes
+
+<div class="exercise">
+Sections with this background indicate exercises to be completed during the workshop.
+</div>
+
+<div class="information">
+Sections with this background highlight particular shortcuts or other references that might be useful.
+</div>
+
+<div class="warning">
+Sections with this background give information about potential error messages or might encounter, or problems that might arise in your own data analysis.
+</div>
+
+# Entering commands in R
+
+The traditional way to enter R commands is via the Terminal, or using the console in RStudio (bottom-left panel when RStudio opens for first time). This doesn’t automatically keep track of the steps you did.
+
+We'll be working in an [**R Notebook**](https://bookdown.org/yihui/rmarkdown/notebook.html). These file are an [R Markdown](https://bookdown.org/yihui/rmarkdown/) document type, which allow us to **combine R code with** [markdown](https://pandoc.org/MANUAL.html#pandocs-markdown), **a documentation language**, providing a framework for [literate programming](https://en.wikipedia.org/wiki/Literate_programming).  In an R Notebook, R code chunks can be executed independently and interactively, with output visible immediately beneath the input.
+
+Let’s try this now!
+
+```{r}
+print("Hello World")
+```
+
+R can be used as a calculator to computer simple sums
+
+
+```{r}
+2 + 2
+2 - 2
+4 * 3
+10 / 2
+```
+
+The answer is displayed at the console with a `[1]` in front of it. The `1` inside the square brackets is a place-holder to signify how many values were in the answer (in this case only one). We will talk about dealing with lists of numbers shortly...
+
+In the case of expressions involving multiple operations, R respects the [BODMAS](https://en.wikipedia.org/wiki/Order_of_operations#Mnemonics) system to decide the order in which operations should be performed.
+
+```{r}
+2 + 2 *3
+2 + (2 * 3)
+(2 + 2) * 3
+```
+
+R is capable of more complicated arithmetic such as trigonometry and logarithms; like you would find on a fancy scientific calculator. Of course, R also has a plethora of statistical operations as we will see.
+
+
+```{r}
+pi
+sin (pi/2)
+cos(pi)
+tan(2)
+log(1)
+```
+
+We can only go so far with performing simple calculations like this. Eventually we will need to store our results for later use. For this, we need to make use of *variables*.
+
+## Variables
+
+A variable is a letter or word which takes (or contains) a value. We
+use the assignment 'operator', `<-` to create a variable and store some value in it. 
+
+```{r}
+x <- 10
+x
+myNumber <- 25
+myNumber
+```
+We also can perform arithmetic on variables using functions:
+
+```{r}
+sqrt(myNumber)
+```
+
+We can add variables together:
+```{r}
+x + myNumber
+```
+
+
+We can change the value of an existing variable:
+
+```{r}
+x <- 21
+x
+```
+
+We can set one variable to equal the value of another variable:
+
+```{r}
+x <- myNumber
+x
+```
+
+We can modify the contents of a variable:
+
+```{r}
+myNumber <- myNumber + sqrt(16)
+myNumber
+```
+
+When we are feeling lazy we might give our variables short names (`x`, `y`, `i`...etc), but a better practice would be to give them meaningful names. There are some restrictions on creating variable names. They cannot start with a number or contain characters such as `.` and '-'. Naming variables the same as in-built functions in R, such as `c`, `T`, `mean` should also be avoided.
+
+Naming variables is a matter of taste. Some [conventions](http://adv-r.had.co.nz/Style.html) exist such as a separating words with `-` or using *c*amel*C*aps. Whatever convention you decided, stick with it!
+
+## Functions
+
+**Functions** in R perform operations on **arguments** (the inputs(s) to the function). We have already used:
+
+```{r}
+sin(x)
+```
+
+this returns the sine of x. In this case the function has one argument: **x**. Arguments are always contained in parentheses -- curved brackets, **()** -- separated by commas.
+
+
+Arguments can be named or unnamed, but if they are unnamed they must be ordered (we will see later how to find the right order). The names of the arguments are determined by the author of the function and can be found in the help page for the function. When testing code, it is easier and safer to name the arguments. `seq` is a function for generating a numeric sequence *from* and *to* particular numbers. Type `?seq` to get the help page for this function.
+
+```{r}
+seq(from = 3, to = 20, by = 4)
+seq(3, 20, 4)
+```
+
+Arguments can have *default* values, meaning we do not need to specify values for these in order to run the function.
+
+`rnorm` is a function that will generate a series of values from a *normal distribution*. In order to use the function, we need to tell R how many values we want
+
+```{r}
+## this will produce a random set of numbers, so everyone will get a different set of numbers
+rnorm(n=10)
+```
+
+The normal distribution is defined by a *mean* (average) and *standard deviation* (spread). However, in the above example we didn't tell R what mean and standard deviation we wanted. So how does R know what to do? All arguments to a function and their default values are listed in the help page
+
+(*N.B sometimes help pages can describe more than one function*)
+
+```{r}
+?rnorm
+```
+
+In this case, we see that the defaults for mean and standard deviation are 0 and 1. We can change the function to generate values from a distribution with a different mean and standard deviation using the `mean` and `sd` *arguments*. It is important that we get the spelling of these arguments exactly right, otherwise R will an error message, or (worse?) do something unexpected.
+
+```{r}
+rnorm(n=10, mean=2,sd=3)
+rnorm(10, 2, 3)
+```
+
+In the examples above, `seq` and `rnorm` were both outputting a series of numbers, which is called a *vector* in R and is the most-fundamental data-type.
+
+
+******
+******
+******
+
+
+
+### Exercise
+
+<div class="exercise">
+
+  - What is the value of `pi` to 3 decimal places?
+    + see the help for `round` `?round`
+  - How can we a create a sequence from 2 to 20 comprised of 5 equally-spaced numbers?
+    + check the help page for seq `?seq`
+  - Create a *variable* containing 1000 random numbers with a *mean* of 2 and a *standard deviation* of 3
+    + what is the maximum and minimum of these numbers?
+    + what is the average?
+    + HINT: see the help pages for functions `min`, `max` and `mean`
+</div>
+
+```{r}
+## Type your code to answer the exercises in here
+
+
+```
+    
+    
+******
+******
+******
+
+## Saving your notebook
+
+If you want to re-visit your code at any point, you will need to save a copy.
+
+<div class="information">
+
+**File > Save > ** 
+
+</div>
+
+
+## Packages in R
+
+So far we have used functions that are available with the *base* distribution of R; the functions you get with a clean install of R. The open-source nature of R encourages others to write their own functions for their particular data-type or analyses.
+
+Packages are distributed through *repositories*. The most-common ones are CRAN and Bioconductor. CRAN alone has many thousands of packages.
+
+<div class="information">
+- The [meta cran](https://www.r-pkg.org/) website can be used to browse packages available in CRAN
+- Bioconductor packages can be browsed [here](http://bioconductor.org/packages/release/BiocViews.html#___Software)
+</div>
+
+CRAN and Bioconductor have some level of curation so should be the first place to look. Researchers sometimes make their packages available on [github](www.github.com). However, there is no straightforward way of searching github for a particular package and no guarentee of quality.
+
+The **Packages** tab in the bottom-right panel of RStudio lists all packages that you currently have installed. Clicking on a package name will show a list of functions that available once that package has been loaded. 
+
+There are functions for installing packages within R. If your package is part of the main **CRAN** repository, you can use `install.packages`.
+
+We will be using a set of `tidyverse` R packages in this practical. To install them, we would do.
+
+```{r eval=FALSE}
+## You should already have installed these as part of the course setup
+
+install.packages("readr")
+install.packages("ggplot2")
+install.packages("dplyr")
+# to install the entire set of tidyverse packages, we can do install.packages("tidyverse"). But this will take some time
+```
+
+
+
+A package may have several *dependencies*; other R packages from which it uses functions or data types (re-using code from other packages is strongly-encouraged). If this is the case, the other R packages will be located and installed too.
+
+**So long as you stick with the same version of R, you won't need to repeat this install process.**
+
+
+Once a package is installed, the `library` function is used to load a package and make it's functions / data available in your current R session. *You need to do this every time you load a new RStudio session*. Let's go ahead and load the `readr` so we can import some data.
+
+
+```{r message=FALSE}
+## readr is a packages to import spreadsheets into R
+library(readr)
+```
+
+
+
+# Dealing with data
+
+The [***tidyverse***](https://www.tidyverse.org/) is an eco-system of packages that provides a consistent, intuitive system for data manipulation and visualisation in R.
+
+
+![](https://aberdeenstudygroup.github.io/studyGroup/lessons/SG-T2-JointWorkshop/tidyverse.png)
+_Image Credit:_ [***Aberdeen Study Group***](https://aberdeenstudygroup.github.io/studyGroup/lessons/SG-T2-JointWorkshop/PopulationChangeSpeciesOccurrence/)
+
+We are going to explore some of the basic features of the `tidyverse` using data from the [gapminder](https://www.gapminder.org/data/) project, which have been bundled into an [R package](https://github.com/jennybc/gapminder). These data give various indicator variables for different countries around the world (life expectancy, population and Gross Domestic Product). We have saved these data as a `.csv` file called `gapminder.csv` in a sub-directory called `raw_data/` to demonstrate how to import data into R.
+
+
+
+
+
+## Reading in data
+
+Any `.csv` file can be imported into R by supplying the path to the file to `readr` function `read_csv` and assigning it to a new object to store the result. A useful sanity check is the `file.exists` function which will print `TRUE` is the file can be found in the working directory.
+
+```{r}
+gapminder_path <- "raw_data/gapminder.csv"
+file.exists(gapminder_path)
+```
+
+
+Assuming the file can be found, we can use `read_csv` to import. Other functions can be used to read tab-delimited files (`read_delim`) or a generic `read.table` function. A data frame object is created.
+
+```{r}
+gapminder <- read_csv(gapminder_path)
+```
+
+<div class="warning">
+
+**Why would specifying `gapminder_path` as **
+`Users/Anna/Documents/workflows/workshops/r-crash-course/raw_data/gapminder.csv` **be a bad idea?** Would you be able to re-run the analysis on another machine?
+
+</div>
+
+
+The data frame object in R allows us to work with **"tabular" data**, like we might be used to dealing with in Excel, where our data can be thought of having **rows and columns**. The values in **each column** have to all be of the **same type** (i.e. all numbers or all text).
+
+In Rstudio, you can **view the contents of the data frame** we have just created using function `View()`. This is useful for interactive exploration of the data, but not so useful for automation, scripting and analyses.
+
+```{r eval=FALSE}
+## Make sure that you use a capital letter V
+
+View(gapminder)
+```
+
+```{r, echo = FALSE}
+gapminder
+```
+
+
+
+We should **always check the data frame that we have created**. Sometimes R will happily read data using an inappropriate function and create an object without raising an error. However, the data might be unusable. Consider:-
+
+```{r}
+test <- read_table(gapminder_path)
+```
+
+```{r, eval=F}
+View(test)
+```
+
+```{r, echo = FALSE}
+test
+```
+
+Quick sanity checks can also be performed by inspecting details in the environment tab. A useful check in RStudio is to use the `head` function, which prints the first 6 rows of the data frame to the screen.
+
+```{r}
+head(gapminder)
+```
+
+<div class="warning">
+We have used a nice, clean, dataset as our example for the workshop. Other datasets out in the wild might not be so ameanable for analysis in R. If your data look like this, you might have problems:-
+<img src="https://datacarpentry.org/2015-05-29-great-plains/spreadsheet-ecology/fig/2_datasheet_example.jpg"/>
+
+We recommend the Data Carpentry materials on spreadsheet organisation for an overview of common pitfalls - and how to address them
+
+- https://datacarpentry.org/spreadsheet-ecology-lesson/
+
+</div>
+
+
+## Accessing data in columns
+
+In the next section we will explore in more detail how to control the columns and rows from a data frame that are displayed in RStudio. For now, accessing all the observations from a particular column can be achieved by typing the `$` symbol after the name of the data frame followed by the name of a column you are interested in.
+
+RStudio is able to *"tab-complete"* the column name, so typing the following and pressing the **TAB** key will bring-up a list of possible columns. The contents of the column that you select are then printed to the screen.
+
+```{r eval=FALSE}
+gapminder$c
+```
+
+Rather than merely printing to the screen we can also create a variable
+
+```{r}
+country_vec <- gapminder$country
+```
+
+
+
+## Creating a new R notebook
+
+You will probably want to create a new *R notebook* file to perform your analysis. This can be done by following the menus:-
+
+<div class="information">
+
+**File -> New File -> R notebook** 
+
+</div>
+
+A new pane should open that includes some example code. You can delete everything **apart from lines 1 to 4**
+
+![](images/blank_notebook.png)
+
+
+# Manipulating data
+
+We are going to use functions from the **`dplyr`** package to **manipulate the data frame** we have just created. It is perfectly possible to work with data frames using the functions provided as part of "*base R*". However, many find it easy to read and write code using `dplyr`.
+
+There are **many more functions available in `dplyr`** than we will cover today. An overview of all functions is given in a cheatsheet.
+
+<div class="information">
+
+- [dplyr cheatsheet](https://www.rstudio.com/wp-content/uploads/2015/02/data-wrangling-cheatsheet.pdf). The cheatsheet is also available through the RStudio Help menu.
+
+</div>
+
+Before using any of these functions, we need to load the library:- 
+
+```{r message=FALSE}
+library(dplyr)
+```
+
+
+### `select`ing columns
+
+
+We can **access the columns** of a data frame using the `select` function. 
+
+#### by name
+
+Firstly, we can select column by name, by adding bare column names (i.e. not requiring quote marks around the name) after the name of the data frame, separated by a `,` . 
+
+```{r}
+select(gapminder, country, continent)
+```
+
+<div class="warning">
+As we have to type the column names manually (no auto-complete!), we have to make sure we type the name exactly as it appears in the data. If `select` sees a name that doesn't exist in the data frame it should give an informative message
+`Error: Can't subset columns that don't exist.`
+</div>
+
+We can also omit columns from the ouput by putting a minus (`-`) in front of the column name. Note that this is not the same as removing the column from the data permanently.
+
+```{r}
+select(gapminder, -country)
+```
+
+#### range of columns
+
+A range of columns can be selected by the `:` operator.
+
+```{r}
+select(gapminder, lifeExp:gdpPercap)
+```
+
+#### helper functions 
+
+There are a number of helper functions can be employed if we are unsure about the exact name of the column.
+
+```{r}
+select(gapminder, starts_with("life"))
+select(gapminder, contains("pop"))
+# selecting the last and penultimate columns
+select(gapminder, last_col(1),last_col())
+```
+
+### Restricting rows with filter
+
+So far we have been returning all the rows in the output. We can use what we call a **logical test** to **filter the rows** in a data frame. This logical test will be applied to each row and give either a `TRUE` or `FALSE` result. When filtering, **only rows with a `TRUE` result get returned**.
+
+For example we filter for rows where the `lifeExp` variable is less than 40. 
+
+```{r}
+filter(gapminder, lifeExp < 40)
+```
+
+Internally, R creates a *vector* of `TRUE` or `FALSE`; one for each row in the data frame. This is then used to decide which rows to display.
+
+Testing for equality can be done using `==`. This will only give `TRUE` for entries that are *exactly* the same as the test string. 
+
+```{r}
+filter(gapminder, country == "Zambia")
+```
+
+N.B. For partial matches, the `grepl` function and / or *regular expressions* (if you know them) can be used.
+
+```{r}
+filter(gapminder, grepl("land", country))
+```
+
+We can also test if rows are *not* equal to a value using  `!=` 
+
+```{r}
+filter(gapminder, continent != "Europe")
+```
+
+#### testing more than one condition
+
+There are a couple of ways of testing for more than one pattern. The first uses an *or* `|` statement. i.e. testing if the value of `country` is `Zambia` *or* the value is `Zimbabwe`. Remember to use double `=` sign to test for string equality; `==`.
+
+
+```{r}
+filter(gapminder, country == "Zambia" | country == "Zimbabwe")
+```
+
+
+The `%in%` function is a convenient function for testing which items in a vector correspond to a defined set of values.
+
+```{r}
+filter(gapminder, country %in% c("Zambia", "Zimbabwe"))
+```
+
+
+We can require that both tests are `TRUE`,  e.g. which years in Zambia had a life expectancy less than 40, by using an *and* (`&`) operation.
+
+```{r}
+filter(gapminder, country == "Zambia" & lifeExp < 40)
+```
+
+Or just by separating conditional statements by a `,`
+
+```{r}
+filter(gapminder, country == "Zambia", lifeExp < 40)
+```
+
+<div class="warning">
+
+</div>
+
+
+******
+******
+******
+
+#### Exercise
+<div class="exercise">
+- Create a subset of the data where the population less than a million in the year 2002
+- Create a subset of the data where the life expectancy is greater than 75 in the years prior to 1987
+- Create a subset of the European data where the life expectancy is between 75 and 80 in the years 2002 or 2007.
+</div>
+******
+******
+******
+
+```{r}
+
+
+
+
+```
+
+
+### Manipulating column values
+
+As well as selecting existing columns in the data frame, new columns can be created and existing ones manipulated using the `mutate` function. Typically a function or mathematical expression is applied to data in existing columns by row, and the result either stored in a new column or reassigned to an existing one. In other words, the number of values returned by the function must be the same as the number of input values. Multiple mutations can be performed in one call.
+
+Here, we create a new column of population in millions (`PopInMillions`) and round `lifeExp` to the nearest integer.
+
+```{r}
+mutate(gapminder, PopInMillions = pop / 1e6,
+       lifeExp = round(lifeExp))
+```
+Note that we haven't actually changed our `gapminder` data frame. If we wanted to make the new columns permanent, we would have to create a new variable.
+
+If we want to rename existing columns, and not create any extra columns, we can use the `rename` function.
+
+```{r}
+rename(gapminder, GDP=gdpPercap)
+```
+
+
+### Ordering / sorting
+
+The whole data frame can be re-ordered according to the values in one column using the `arrange` function. So to order the table according to population size:-
+
+```{r}
+arrange(gapminder, pop)
+```
+
+
+The default is `smallest --> largest` but we can change this using the `desc` function
+
+```{r}
+arrange(gapminder, desc(pop))
+```
+
+`arrange` also works on character vectors, arrange them alpha-numerically.
+
+```{r}
+arrange(gapminder, desc(country))
+```
+
+We can even order by more than one condition
+
+```{r}
+arrange(gapminder, year, pop)
+```
+
+
+```{r}
+arrange(gapminder, year, continent, pop)
+```
+
+### Saving data frames
+
+A final point on data frames is that we can write them to disk once we have done our data processing. 
+
+Let's create a folder in which to store such processed, analysis ready data
+
+```{r, warning=FALSE, message=FALSE}
+dir.create("out_data",showWarnings = FALSE)
+## showWarnings will stop a message from appearing if the directory already exists
+```
+
+
+```{r}
+byWealth <- arrange(gapminder, desc(gdpPercap))
+# check the output before writing
+head(byWealth)
+write_csv(byWealth, path = "out_data/by_wealth.csv")
+```
+
+We will now try an exercise that involves using several steps of these operations
+
+******
+******
+******
+
+#### Exercise
+<div class="exercise">
+- Filter the data to include just observations from the year 2002
+- Re-arrange the table so that the countries from each continent are ordered according to decreasing wealth. i.e. the wealthiest countries first
+- Select all the columns apart from year 
+- Write the data frame out to a file in `out_data/` folder
+</div>
+```{r echo=FALSE}
+
+
+
+```
+
+
+******
+******
+******
+
