@@ -117,6 +117,11 @@ Please watch these lectures before the workshop on November 10th
 - [Part 2](https://youtu.be/oDjOSV5yas4)
 - [Part 3](https://youtu.be/uL6N07w3L18)
 
+## Course Notes
+
+- [Notes and exercise solutions](https://sbc.shef.ac.uk/stats-in-r/practical.nb.html)
+
+
 # Dec 8th/11th - Introduction to RNA-seq analysis
 
 
